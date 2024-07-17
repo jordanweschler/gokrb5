@@ -75,7 +75,13 @@ func (s *SPNEGO) AcceptSecContext(ct gssapi.ContextToken) (bool, context.Context
 	t.settings = s.serviceSettings
 	var oid asn1.ObjectIdentifier
 	if t.Init {
-		oid = t.NegTokenInit.MechTypes[0]
+        // Multiple MechTypes can be found, and the first may not be supported
+        for _, m := range t.NegTokenInit.MechTypes {
+            oid = m
+            if oid.Equal(gssapi.OIDKRB5.OID()) || oid.Equal(gssapi.OIDMSLegacyKRB5.OID()) {
+                break
+            }
+        }
 	}
 	if t.Resp {
 		oid = t.NegTokenResp.SupportedMech
